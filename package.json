@@ -12,6 +12,7 @@
     "@gluestack-style/react": "^1.0.43",
     "@gluestack-ui/config": "^1.1.1",
     "@gluestack-ui/themed": "^1.1.0",
+    "@react-native-community/art": "^1.2.0",
     "@react-navigation/material-top-tabs": "^6.6.5",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",

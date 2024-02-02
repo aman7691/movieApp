@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import axios from 'axios';
-import { Select, SelectTrigger, SelectInput, SelectIcon, Icon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectItem } from '@gluestack-ui/themed';
-import { ChevronDownIcon } from "@gluestack-ui/themed";
-import { Button, ButtonText, ButtonIcon, ButtonGroup } from "@gluestack-ui/themed"
 import Cards from '../component/Cards';
 import CustomSelect from '../component/CustomSelect';
-
-
+import {ActivityIndicator} from 'react-native';
 
 
 const Movies = ({ navigation }) => {
   const [movies, setMovies] = useState([]);
-  const [category, setCategory] = useState('now_playing')
+  const [category, setCategory] = useState('now_playing');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchMovies();
   }, [category]);
 
   const fetchMovies = () => {
+    setLoading(true);
     const options = {
       method: 'GET',
       headers: {
@@ -30,13 +28,17 @@ const Movies = ({ navigation }) => {
     axios.get(`https://api.themoviedb.org/3/movie/${category}?language=en-US&page=1`, options)
       .then(response => {
         setMovies(response.data.results);
+        setLoading(false);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
   };
 
   const handleCategoryChange = (value) => {
-    setCategory(value)
-  }
+    setCategory(value);
+  };
 
   const movieOptions = [
     { label: 'Popular', value: 'popular' },
@@ -54,14 +56,19 @@ const Movies = ({ navigation }) => {
           options={movieOptions}
         />
       </View>
-
-
-      <ScrollView style={styles.scrollView}>
-        {movies.map(movie => (
-          <Cards key={movie.id} movie={movie} navigation={navigation} type={"movie"} />
-        ))}
-      </ScrollView>
-
+  
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="blue" />
+          <Text>Loading...</Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.scrollView}>
+          {movies.map(movie => (
+            <Cards key={movie.id} movie={movie} navigation={navigation} type={"movie"} />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -81,9 +88,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: "100%"
   },
-
-
-
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
 });
 
 export default Movies;

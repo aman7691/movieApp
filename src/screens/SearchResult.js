@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
-import { Input, InputSlot, InputIcon, SearchIcon, InputField } from '@gluestack-ui/themed';
+import { Input, InputSlot, InputIcon, SearchIcon, InputField, flush } from '@gluestack-ui/themed';
 import { Select, SelectTrigger, SelectInput, SelectIcon, Icon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectItem, } from '@gluestack-ui/themed';
 import { ChevronDownIcon } from "@gluestack-ui/themed";
 // import { SearchIcon } from "@gluestack-ui/themed";
@@ -8,12 +8,16 @@ import { Button, ButtonText, ButtonIcon, ButtonGroup } from "@gluestack-ui/theme
 import axios from 'axios';
 import Cards from '../component/Cards';
 import CustomSelect from '../component/CustomSelect';
+import { ActivityIndicator } from 'react-native';
+
 
 
 const SearchResult = ({ navigation }) => {
   const [category, setCategory] = useState('multi');
   const [searchItem, setSearchItem] = useState([]);
   const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     fetchMovies();
@@ -22,6 +26,7 @@ const SearchResult = ({ navigation }) => {
 
 
   const fetchMovies = () => {
+    setLoading(true);
     const options = {
       method: 'GET',
       headers: {
@@ -38,12 +43,14 @@ const SearchResult = ({ navigation }) => {
             // console.log(item.media_type)
           })
           setSearchItem(response.data.results);
+          setLoading(false);
         } else {
           console.error('Invalid API response format');
         }
       })
       .catch(err => {
         console.error('Error fetching TV shows:', err);
+        setLoading(false);
       });
   };
 
@@ -79,10 +86,10 @@ const SearchResult = ({ navigation }) => {
         <View style={styles.selectContainer}>
 
 
-          <CustomSelect 
+          <CustomSelect
             category={category}
             handleCategoryChange={handleValueChange}
-            options={movieOptions} 
+            options={movieOptions}
             style={{ width: 150 }}
           />
 
@@ -103,11 +110,20 @@ const SearchResult = ({ navigation }) => {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView}>
-        {searchItem.map(item => (
-          <Cards key={item.id} movie={item} navigation={navigation} type={category == "multi" ? item.media_type : category} />
-        ))}
-      </ScrollView>
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="blue" />
+          <Text>Loading...</Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.scrollView}>
+          {searchItem.map(item => (
+            <Cards key={item.id} movie={item} navigation={navigation} type={category == "multi" ? item.media_type : category} />
+          ))}
+        </ScrollView>
+      )}
+
+
     </View>
   );
 };
@@ -118,7 +134,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10
   },
- 
+
   input: {
     width: "80%"
   },
@@ -135,6 +151,10 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: "#06ADCE"
+  }, loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

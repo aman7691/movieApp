@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Select, SelectTrigger, SelectInput, SelectIcon, Icon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectItem } from '@gluestack-ui/themed';
+import { View, StyleSheet, ScrollView , Text} from 'react-native';
+import { Select, SelectTrigger, SelectInput, SelectIcon, Icon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectItem, flush } from '@gluestack-ui/themed';
 import { ChevronDownIcon } from "@gluestack-ui/themed";
 import axios from 'axios';
 import { Button, ButtonText, ButtonIcon, ButtonGroup } from "@gluestack-ui/themed"
 import MovieCard from '../component/Cards';
 import CustomSelect from '../component/CustomSelect';
+import { ActivityIndicator } from 'react-native';
 
 const TvShows = ({ navigation }) => {
 
   const [tvShows, setTvShows] = useState([]);
   const [category, setCategory] = useState('popular')
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     fetchMovies();
   }, [category]);
 
   const fetchMovies = () => {
+    setLoading(true)
     const options = {
       method: 'GET',
       headers: {
@@ -29,12 +33,14 @@ const TvShows = ({ navigation }) => {
       .then(response => {
         if (response.data && response.data.results) {
           setTvShows(response.data.results);
+          setLoading(false);
         } else {
           console.error('Invalid API response format');
         }
       })
       .catch(err => {
         console.error('Error fetching TV shows:', err);
+        setLoading(false);
       });
   };
 
@@ -57,11 +63,16 @@ const TvShows = ({ navigation }) => {
           options={movieOptions} />
       </View>
 
-      <ScrollView style={styles.scrollView}>
+
+      {loading ? (<View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="blue" />
+        <Text>Loading...</Text>
+      </View>) : (<ScrollView style={styles.scrollView}>
         {tvShows.map(movie => (
           <MovieCard key={movie.id} movie={movie} navigation={navigation} type={"tv"} />
         ))}
-      </ScrollView>
+      </ScrollView>)}
+
 
     </View>
   )
@@ -73,7 +84,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     flexDirection: 'column',
     gap: 50
-  
+
   },
   container1: {
     flex: 1,
@@ -82,7 +93,12 @@ const styles = StyleSheet.create({
 
   scrollView: {
     width: '100%',
-  }
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
 });
 
 export default TvShows;
